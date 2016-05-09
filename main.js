@@ -21,10 +21,6 @@ function randPosNeg(bnd) {
   return -bnd + (Math.random() * 2 * bnd);
 }
 
-function getBrown() {
-  return randSample(browns[0], browns[1], 'hsl');
-}
-
 function fmt(num) {
   return num < 0 ? String(num) : '+' + num;
 }
@@ -38,6 +34,14 @@ function randOffset(color, r, g, b) {
 function randSample(colA, colB, mode) {
   mode = mode || 'rgb';
   return chroma.scale([colA, colB]).mode(mode)(Math.random());
+}
+
+function offsetBrown() {
+  return randOffset(chroma(browns[0]), 6, 3, 4);
+}
+
+function sampleBrown() {
+  return randSample(browns[0], browns[1], 'hsl');
 }
 
 function composeBrown() {
@@ -54,14 +58,21 @@ function hslRngBrown() {
   return chroma(h, s, v, 'hsv');
 }
 
+var algos = [offsetBrown, sampleBrown, composeBrown, hslRngBrown];
+
 function genQuads(ctx, num) {
   var side = 2 / num;
-  return range(num).map(function(i) {
-    var quad = makeQuad(-1 + side * i, -1, side, 2);
-    // var color = randOffset(chroma('48240a'), 6, 3, 4);
-    // var color = getBrown();
-    // var color = composeBrown();
-    var color = hslRngBrown();
+  var height = 2 / algos.length;
+
+  let xyPairs = range(num).map(function(x) {
+    return range(algos.length).map(function(y) {
+      return [x, y];
+    })
+  }).reduce(function(memo, arr) { return memo.concat(arr); }, []);
+
+  return xyPairs.map(function(pos) {
+    var quad = makeQuad(-1 + side * pos[0], -1 + height * pos[1], side, height);
+    var color = algos[pos[1]]();
     var mesh = ctx.createMesh([
       { data: quad.positions, location: ctx.ATTRIB_POSITION },
       { data: quad.normals, location: ctx.ATTRIB_NORMAL },
