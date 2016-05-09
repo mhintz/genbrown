@@ -6,6 +6,13 @@ var makeQuad = require('./quad');
 var range = require('range').range;
 var KeyboardEvent = require('pex-sys/KeyboardEvent');
 
+var browns = [
+  '48240a',
+  '311907'
+];
+
+var NUM_RECTS = 10;
+
 function rand(lo, hi) {
   return lo + (Math.random() * (hi - lo));
 }
@@ -14,15 +21,12 @@ function randPosNeg(bnd) {
   return -bnd + (Math.random() * 2 * bnd);
 }
 
-function fmt(num) {
-  return num < 0 ? String(num) : '+' + num;
+function getBrown() {
+  return randSample(browns[0], browns[1], 'hsl');
 }
 
-function getBrown() {
-  return chroma.scale([
-    '48240a',
-    '311907'
-  ]).mode('hsl')(Math.random());
+function fmt(num) {
+  return num < 0 ? String(num) : '+' + num;
 }
 
 function randOffset(color, r, g, b) {
@@ -36,12 +40,28 @@ function randSample(colA, colB, mode) {
   return chroma.scale([colA, colB]).mode(mode)(Math.random());
 }
 
+function composeBrown() {
+  var redval = rand(25, 70);
+  var ratioGrn = rand(1.45, 1.65);
+  var ratioBlu = rand(3.0, 3.4);
+  return chroma(redval, redval / ratioGrn, redval / ratioBlu);
+}
+
+function hslRngBrown() {
+  var h = rand(30, 35);
+  var s = rand(.78, 1);
+  var v = rand(.15, .25);
+  return chroma(h, s, v, 'hsv');
+}
+
 function genQuads(ctx, num) {
   var side = 2 / num;
   return range(num).map(function(i) {
     var quad = makeQuad(-1 + side * i, -1, side, 2);
-    var color = randOffset(chroma('48240a'), 6, 5, 4);
-    // var color = randSample(chroma(getBrown()), chroma(getBrown()));
+    // var color = randOffset(chroma('48240a'), 6, 3, 4);
+    // var color = getBrown();
+    // var color = composeBrown();
+    var color = hslRngBrown();
     var mesh = ctx.createMesh([
       { data: quad.positions, location: ctx.ATTRIB_POSITION },
       { data: quad.normals, location: ctx.ATTRIB_NORMAL },
@@ -52,8 +72,6 @@ function genQuads(ctx, num) {
     return mesh;
   });
 }
-
-var NUM_RECTS = 6;
 
 Window.create({
     settings: {
@@ -80,8 +98,6 @@ Window.create({
       this.quads = genQuads(this.getContext(), NUM_RECTS);
     },
     onKeyDown: function(e) {
-      console.log('onKeyDown', e.str, e.keyCode, e.altKey, e.shiftKey, e.ctrlKey, e.metaKey);
-
       switch (e.keyCode) {
         case KeyboardEvent.VK_SPACE: this.updateQuads(); break;
       }
