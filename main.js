@@ -1,5 +1,5 @@
-var Window          = require('pex-sys/Window');
-var glslify         = require('glslify-promise');
+var Window = require('pex-sys/Window');
+var glslify = require('glslify-promise');
 var createCube = require('primitive-cube');
 var chroma = require('chroma-js');
 var makeQuad = require('./quad');
@@ -58,9 +58,9 @@ function hslRngBrown() {
   return chroma(h, s, v, 'hsv');
 }
 
-var algos = [offsetBrown, sampleBrown, composeBrown, hslRngBrown];
 
 function genQuads(ctx, num) {
+  var algos = [offsetBrown, sampleBrown, composeBrown, hslRngBrown];
   var side = 2 / num;
   var height = 2 / algos.length;
 
